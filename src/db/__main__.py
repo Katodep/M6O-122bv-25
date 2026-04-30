@@ -1,5 +1,8 @@
+from .tui import run
+
+
 def main():
-    print("Hello, this is the db module!")
+    run()
 
 
 if __name__ == "__main__":
