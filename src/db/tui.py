@@ -1,9 +1,10 @@
-from .backend.memory import create_record, select_record, update_record
+from .backend.memory import create_record, select_record, update_record, delete_record
 def _print_menu() -> None:
     print("\n=== База студентов ===")
     print("1. Добавить запись")
     print("2. Показать все записи")
     print("3. Найти записи по фильтру")
+    print("4. Удалить по id")
     print("0. Выход")
 
 def _read_int(prompt: str) -> int:
@@ -76,6 +77,14 @@ def _find_students_by_filter() -> None:
     )
 
     _print_records(records)
+
+
+def _delete_student() -> None:
+    a=_read_int("\n Введите id для удаления")
+    delete_record(a)
+
+     
+
 def run() -> None:
     
     while True:
@@ -93,6 +102,9 @@ def run() -> None:
 
         elif action == "3":
             _find_students_by_filter()
+            
+        elif action == "4":
+            _delete_student()
 
         elif action == "0":
             print("Выход из программы.")
@@ -100,3 +112,5 @@ def run() -> None:
 
         else:
             print("Неизвестная команда. Повторите ввод.")
+
+    

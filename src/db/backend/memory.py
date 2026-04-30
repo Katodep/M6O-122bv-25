@@ -113,6 +113,7 @@ def update_record(
             break
 
 
+
     new_record: StudentRecord = (
         student_id,
         first_name.strip(),
@@ -120,5 +121,25 @@ def update_record(
         age,
         sex.strip(),
     )
+    
+def delete_record(id: int):
+    b=False
+    resp=""
+    for record in Student:
+        if record[0]==id:
+            resp=Student.pop(Student.index(record))
+            b=True
+            break
+        else:
+            b=False
+    if b:
+        print("удалена запись: ",resp)
+    else:
+        print(f"запись с id = {id} не найдена")
+        
+
+
+
+
 
 
