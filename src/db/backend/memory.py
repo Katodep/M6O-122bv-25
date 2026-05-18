@@ -1,4 +1,4 @@
-from .errors import DuplicateIDError, InvalidAgeError
+from .errors import InvalidAgeError, DuplicateIDError
 
 type StudentRecord = tuple[int, str, str, int, str]
 
@@ -15,7 +15,6 @@ class StudentTable:
         age: int,
         sex: str,
     ) -> StudentRecord:
-
         if age < 0:
             raise InvalidAgeError("Поле age не может быть отрицательным.")
 
@@ -40,7 +39,6 @@ class StudentTable:
         age: int | None = None,
         sex: str | None = None,
     ) -> list[StudentRecord]:
-
         if (
             student_id is None
             and first_name is None
@@ -55,19 +53,14 @@ class StudentTable:
         for record in self._student:
             if student_id is not None and record[0] != student_id:
                 continue
-
             if first_name is not None and record[1] != first_name:
                 continue
-
             if second_name is not None and record[2] != second_name:
                 continue
-
             if age is not None and record[3] != age:
                 continue
-
             if sex is not None and record[4] != sex:
                 continue
-
             result.append(record)
 
         return result
@@ -80,12 +73,9 @@ class StudentTable:
         age: int,
         sex: str,
     ) -> StudentRecord:
-        """Обновление существующей записи"""
-        
         if age < 0:
             raise InvalidAgeError("Поле age не может быть отрицательным.")
-        
-        # Ищем запись для обновления
+
         for i, record in enumerate(self._student):
             if record[0] == student_id:
                 new_record: StudentRecord = (
@@ -97,11 +87,10 @@ class StudentTable:
                 )
                 self._student[i] = new_record
                 return new_record
-        
+
         raise KeyError(f"Запись с id={student_id} не найдена.")
 
     def delete_record(self, id: int) -> StudentRecord:
-        """Удаление записи по ID"""
         for i, record in enumerate(self._student):
             if record[0] == id:
                 return self._student.pop(i)
