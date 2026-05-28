@@ -1,4 +1,3 @@
-# src/db/tui.py
 from .backend.memory import create_record, select_record, update_record, delete_record
 
 def _print_menu() -> None:

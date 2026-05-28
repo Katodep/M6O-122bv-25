@@ -1,4 +1,3 @@
-# src/db/backend/memory.py
 type StudentRecord = tuple[int, str, str, int, str]
 
 Student: list[StudentRecord] = []
