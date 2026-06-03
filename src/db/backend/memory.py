@@ -94,5 +94,28 @@ class StudentTable:
         for i, record in enumerate(self._student):
             if record[0] == id:
                 return self._student.pop(i)
-        
+
         raise KeyError(f"Запись с id={id} не найдена.")
+
+    def sort_records(
+        self,
+        field: str,
+        reverse: bool = False
+    ) -> list[StudentRecord]:
+        if not self._student:
+            return []
+
+        field_map = {
+            "student_id": 0,
+            "first_name": 1,
+            "second_name": 2,
+            "age": 3,
+            "sex": 4
+        }
+
+        if field not in field_map:
+            raise ValueError(f"Недопустимое поле для сортировки: {field}. "
+                           f"Допустимые поля: {list(field_map.keys())}")
+
+        index = field_map[field]
+        return sorted(self._student, key=lambda x: x[index], reverse=reverse)
