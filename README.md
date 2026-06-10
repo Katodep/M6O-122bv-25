@@ -38,7 +38,6 @@
 - Фреймворк: unittest + pytest
 
 ### Запуск тестов
-```bash
 pytest tests/ --cov=src.db.backend --cov-report=term-missing
 
 ![](1698744401294477947.png)
