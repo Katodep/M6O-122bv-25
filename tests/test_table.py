@@ -80,6 +80,27 @@ class TestTable(unittest.TestCase):
         table = Table(("id", "name"), records)
         self.assertEqual(len(table.records), 2)
 
+    def test_sort_records(self):
+        table = Table(("student_id", "name", "age"))
+        table.insert_record({"student_id": 3, "name": "John", "age": 20})
+        table.insert_record({"student_id": 1, "name": "Alice", "age": 22})
+        table.insert_record({"student_id": 2, "name": "Bob", "age": 21})
+        
+        sorted_records = table.sort_records("student_id", reverse=False)
+        
+        self.assertEqual(sorted_records[0]["student_id"], 1)
+        self.assertEqual(sorted_records[1]["student_id"], 2)
+        self.assertEqual(sorted_records[2]["student_id"], 3)
+
+    def test_get_all(self):
+        table = Table(("id", "name"))
+        table.insert_record({"id": 1, "name": "John"})
+        
+        all_records = table.get_all()
+        self.assertEqual(len(all_records), 1)
+        all_records.append({"id": 2, "name": "Jane"})
+        self.assertEqual(len(table.records), 1)
+
 
 if __name__ == "__main__":
     unittest.main()

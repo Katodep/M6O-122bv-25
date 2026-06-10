@@ -59,3 +59,15 @@ class Table:
                 self.records.pop(i)
                 return True
         return False
+
+    def sort_records(self, field: str, reverse: bool = False) -> list[dict[str, Any]]:
+        if field not in self.columns:
+            raise UnknownColumnError(f"Поле '{field}' не определено в структуре таблицы.")
+        
+        if not self.records:
+            return []
+        
+        return sorted(self.records, key=lambda x: x.get(field), reverse=reverse)
+
+    def get_all(self) -> list[dict[str, Any]]:
+        return [record.copy() for record in self.records]

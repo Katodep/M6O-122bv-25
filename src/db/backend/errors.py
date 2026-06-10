@@ -1,45 +1,33 @@
+class InvalidAgeError(Exception):
+    pass
+
+class DuplicateIDError(Exception):
+    pass
+
+class MissingColumnError(Exception):
+    pass
+
+class UnknownColumnError(Exception):
+    pass
 # src/db/backend/errors.py
 
-class StudentTableError(Exception):
-    """Базовый класс для ошибок, связанных с таблицей Student."""
+class InvalidAgeError(Exception):
     pass
 
-
-class InvalidAgeError(StudentTableError):
-    """Ошибка при попытке создать запись с некорректным возрастом."""
+class DuplicateIDError(Exception):
     pass
 
-
-class DuplicateIDError(StudentTableError):
-    """Ошибка при попытке создать запись с уже существующим ID."""
+class MissingColumnError(Exception):
     pass
 
-
-class DatabaseError(Exception):
-    """Базовый класс для ошибок базы данных."""
+class UnknownColumnError(Exception):
     pass
 
-
-class TableAlreadyExistsError(DatabaseError):
-    """Ошибка при попытке создать уже существующую таблицу."""
+class TableAlreadyExistsError(Exception):
     pass
 
-
-class TableNotFoundError(DatabaseError):
-    """Ошибка при обращении к несуществующей таблице."""
+class TableNotFoundError(Exception):
     pass
 
-
-class MissingColumnError(DatabaseError):
-    """Ошибка при отсутствии обязательного поля в записи."""
-    pass
-
-
-class UnknownColumnError(DatabaseError):
-    """Ошибка при использовании поля, которого нет в схеме."""
-    pass
-
-
-class InvalidStorageDataError(DatabaseError):
-    """Ошибка при чтении повреждённых данных из файла."""
+class InvalidStorageDataError(Exception):
     pass

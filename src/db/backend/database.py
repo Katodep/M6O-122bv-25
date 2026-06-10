@@ -1,47 +1,24 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-from .errors import TableAlreadyExistsError, TableNotFoundError
-from .table import Table
-
 
 class Database(ABC):
+    @abstractmethod
     def create_table(self, table_name: str, columns: tuple[str, ...]) -> None:
-        if self._table_exists(table_name):
-            raise TableAlreadyExistsError(f"Таблица '{table_name}' уже существует.")
-        self._save_table(table_name, Table(columns))
-
+        pass
+    
+    @abstractmethod
     def insert_record(self, table_name: str, record: dict[str, Any]) -> None:
-        table = self._load_table(table_name)
-        table.insert_record(record)
-        self._save_table(table_name, table)
-
+        pass
+    
+    @abstractmethod
     def select_records(self, table_name: str, **filters: Any) -> list[dict[str, Any]]:
-        table = self._load_table(table_name)
-        return table.select_records(**filters)
-
+        pass
+    
+    @abstractmethod
     def update_record(self, table_name: str, **updates: Any) -> bool:
-        table = self._load_table(table_name)
-        result = table.update_record(**updates)
-        if result:
-            self._save_table(table_name, table)
-        return result
-
+        pass
+    
+    @abstractmethod
     def delete_record(self, table_name: str, student_id: int) -> bool:
-        table = self._load_table(table_name)
-        result = table.delete_record(student_id)
-        if result:
-            self._save_table(table_name, table)
-        return result
-
-    @abstractmethod
-    def _table_exists(self, table_name: str) -> bool:
-        pass
-
-    @abstractmethod
-    def _load_table(self, table_name: str) -> Table:
-        pass
-
-    @abstractmethod
-    def _save_table(self, table_name: str, table: Table) -> None:
         pass

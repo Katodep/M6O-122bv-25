@@ -1,40 +1,54 @@
-# src/db/backend/memory.py
-from .errors import InvalidAgeError, DuplicateIDError
-from .database import Database
+from typing import Any
 from .table import Table
-from .errors import TableNotFoundError
-
-type StudentRecord = tuple[int, str, str, int, str]
+from .errors import InvalidAgeError, DuplicateIDError
 
 
 class StudentTable:
     def __init__(self) -> None:
-        self._student: list[StudentRecord] = []
-
-    def create_record(
-        self,
-        student_id: int,
-        first_name: str,
-        second_name: str,
-        age: int,
-        sex: str,
-    ) -> StudentRecord:
+        self.columns = ("student_id", "first_name", "second_name", "age", "sex")
+        self.table = Table(columns=self.columns)
+    
+    def _get_next_id(self) -> int:
+        records = self.table.get_all()
+        if not records:
+            return 1
+        return max(record.get("student_id", 0) for record in records) + 1
+    
+    def _validate_age(self, age: int) -> None:
         if age < 0:
             raise InvalidAgeError("Поле age не может быть отрицательным.")
-
-        if any(record[0] == student_id for record in self._student):
+    
+    def _check_duplicate_id(self, student_id: int) -> None:
+        existing = self.table.select_records(student_id=student_id)
+        if existing:
             raise DuplicateIDError(f"Запись с id={student_id} уже существует.")
-
-        new_record: StudentRecord = (
-            student_id,
-            first_name.strip(),
-            second_name.strip(),
-            age,
-            sex.strip(),
-        )
-        self._student.append(new_record)
-        return new_record
-
+    
+    def create_record(
+        self,
+        student_id: int | None = None,
+        first_name: str = "",
+        second_name: str = "",
+        age: int = 0,
+        sex: str = "",
+        **kwargs
+    ) -> dict[str, Any]:
+        if student_id is None or student_id == 0:
+            student_id = self._get_next_id()
+        
+        self._validate_age(age)
+        self._check_duplicate_id(student_id)
+        
+        record = {
+            "student_id": student_id,
+            "first_name": first_name.strip(),
+            "second_name": second_name.strip(),
+            "age": age,
+            "sex": sex.strip()
+        }
+        
+        self.table.insert_record(record)
+        return record.copy()
+    
     def select_record(
         self,
         student_id: int | None = None,
@@ -42,102 +56,97 @@ class StudentTable:
         second_name: str | None = None,
         age: int | None = None,
         sex: str | None = None,
-    ) -> list[StudentRecord]:
-        if (
-            student_id is None
-            and first_name is None
-            and second_name is None
-            and age is None
-            and sex is None
-        ):
-            return self._student.copy()
-
-        result: list[StudentRecord] = []
-
-        for record in self._student:
-            if student_id is not None and record[0] != student_id:
-                continue
-            if first_name is not None and record[1] != first_name:
-                continue
-            if second_name is not None and record[2] != second_name:
-                continue
-            if age is not None and record[3] != age:
-                continue
-            if sex is not None and record[4] != sex:
-                continue
-            result.append(record)
-
-        return result
-
+        **filters
+    ) -> list[dict[str, Any]]:
+        if student_id is not None:
+            filters["student_id"] = student_id
+        if first_name is not None:
+            filters["first_name"] = first_name
+        if second_name is not None:
+            filters["second_name"] = second_name
+        if age is not None:
+            filters["age"] = age
+        if sex is not None:
+            filters["sex"] = sex
+        
+        return self.table.select_records(**filters)
+    
     def update_record(
         self,
         student_id: int,
-        first_name: str,
-        second_name: str,
-        age: int,
-        sex: str,
-    ) -> StudentRecord:
-        if age < 0:
-            raise InvalidAgeError("Поле age не может быть отрицательным.")
-
-        for i, record in enumerate(self._student):
-            if record[0] == student_id:
-                new_record: StudentRecord = (
-                    student_id,
-                    first_name.strip(),
-                    second_name.strip(),
-                    age,
-                    sex.strip(),
-                )
-                self._student[i] = new_record
-                return new_record
-
-        raise KeyError(f"Запись с id={student_id} не найдена.")
-
-    def delete_record(self, id: int) -> StudentRecord:
-        for i, record in enumerate(self._student):
-            if record[0] == id:
-                return self._student.pop(i)
-
-        raise KeyError(f"Запись с id={id} не найдена.")
-
-    def sort_records(
-        self,
-        field: str,
-        reverse: bool = False
-    ) -> list[StudentRecord]:
-        if not self._student:
-            return []
-
-        field_map = {
-            "student_id": 0,
-            "first_name": 1,
-            "second_name": 2,
-            "age": 3,
-            "sex": 4
-        }
-
-        if field not in field_map:
-            raise ValueError(f"Недопустимое поле для сортировки: {field}. "
-                           f"Допустимые поля: {list(field_map.keys())}")
-
-        index = field_map[field]
-        return sorted(self._student, key=lambda x: x[index], reverse=reverse)
-
-
-class MemoryDatabase(Database):
-    """База данных, хранящая таблицы в оперативной памяти."""
-
-    def __init__(self) -> None:
-        self.tables: dict[str, Table] = {}
-
-    def _table_exists(self, table_name: str) -> bool:
-        return table_name in self.tables
-
-    def _load_table(self, table_name: str) -> Table:
-        if table_name not in self.tables:
-            raise TableNotFoundError(f"Таблица '{table_name}' не существует.")
-        return self.tables[table_name]
-
-    def _save_table(self, table_name: str, table: Table) -> None:
-        self.tables[table_name] = table
+        first_name: str | None = None,
+        second_name: str | None = None,
+        age: int | None = None,
+        sex: str | None = None,
+        **kwargs
+    ) -> dict[str, Any]:
+        existing = self.select_record(student_id=student_id)
+        if not existing:
+            raise KeyError(f"Запись с id={student_id} не найдена.")
+        
+        updates = {"student_id": student_id}
+        
+        if first_name is not None:
+            updates["first_name"] = first_name.strip()
+        if second_name is not None:
+            updates["second_name"] = second_name.strip()
+        if age is not None:
+            if age < 0:
+                raise InvalidAgeError("Поле age не может быть отрицательным.")
+            updates["age"] = age
+        if sex is not None:
+            updates["sex"] = sex.strip()
+        
+        success = self.table.update_record(**updates)
+        if not success:
+            raise KeyError(f"Запись с id={student_id} не найдена.")
+        
+        result = self.select_record(student_id=student_id)
+        return result[0] if result else {}
+    
+    def delete_record(self, student_id: int) -> dict[str, Any]:
+        existing = self.select_record(student_id=student_id)
+        if not existing:
+            raise KeyError(f"Запись с id={student_id} не найдена.")
+        
+        deleted = existing[0].copy()
+        success = self.table.delete_record(student_id)
+        
+        if not success:
+            raise KeyError(f"Запись с id={student_id} не найдена.")
+        
+        return deleted
+    
+    def sort_records(self, field: str, reverse: bool = False) -> list[dict[str, Any]]:
+        return self.table.sort_records(field, reverse)
+    
+    def get_all(self) -> list[dict[str, Any]]:
+        return self.table.get_all()
+    
+    # Совместимость с Database интерфейсом для TUI
+    def create_table(self, table_name: str, columns: tuple[str, ...]) -> None:
+        pass
+    
+    def insert_record(self, table_name: str, record: dict) -> None:
+        self.create_record(**record)
+    
+    def select_records(self, table_name: str, **filters) -> list:
+        return self.select_record(**filters)
+    
+    def update_record_db(self, table_name: str, **updates) -> bool:
+        try:
+            student_id = updates.get("student_id")
+            if student_id is None:
+                return False
+            updates_without_id = {k: v for k, v in updates.items() if k != "student_id"}
+            self.update_record(student_id=student_id, **updates_without_id)
+            return True
+        except Exception:
+            return False
+    
+    def delete_record_db(self, table_name: str, student_id: int) -> bool:
+        try:
+            self.delete_record(student_id)
+            return True
+        except Exception:
+            return False
