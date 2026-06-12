@@ -23,6 +23,45 @@ class StudentTable:
         if existing:
             raise DuplicateIDError(f"Запись с id={student_id} уже существует.")
     
+    def create_table(self, table_name: str, columns: tuple[str, ...]) -> None:
+        pass
+    
+    def insert_record(self, table_name: str, record: dict[str, Any]) -> None:
+        student_id = record.get("student_id")
+        first_name = record.get("first_name", "")
+        second_name = record.get("second_name", "")
+        age = record.get("age", 0)
+        sex = record.get("sex", "")
+        
+        self.create_record(
+            student_id=student_id,
+            first_name=first_name,
+            second_name=second_name,
+            age=age,
+            sex=sex
+        )
+    
+    def select_records(self, table_name: str, **filters: Any) -> list[dict[str, Any]]:
+        return self.select_record(**filters)
+    
+    def update_record(self, table_name: str, **updates: Any) -> bool:
+        try:
+            student_id = updates.get("student_id")
+            if student_id is None:
+                return False
+            updates_without_id = {k: v for k, v in updates.items() if k != "student_id"}
+            self._update_record(student_id=student_id, **updates_without_id)
+            return True
+        except Exception:
+            return False
+    
+    def delete_record(self, table_name: str, student_id: int) -> bool:
+        try:
+            self._delete_record(student_id)
+            return True
+        except Exception:
+            return False
+    
     def create_record(
         self,
         student_id: int | None = None,
@@ -71,7 +110,7 @@ class StudentTable:
         
         return self.table.select_records(**filters)
     
-    def update_record(
+    def _update_record(
         self,
         student_id: int,
         first_name: str | None = None,
@@ -104,7 +143,7 @@ class StudentTable:
         result = self.select_record(student_id=student_id)
         return result[0] if result else {}
     
-    def delete_record(self, student_id: int) -> dict[str, Any]:
+    def _delete_record(self, student_id: int) -> dict[str, Any]:
         existing = self.select_record(student_id=student_id)
         if not existing:
             raise KeyError(f"Запись с id={student_id} не найдена.")
@@ -122,31 +161,3 @@ class StudentTable:
     
     def get_all(self) -> list[dict[str, Any]]:
         return self.table.get_all()
-    
-    # Совместимость с Database интерфейсом для TUI
-    def create_table(self, table_name: str, columns: tuple[str, ...]) -> None:
-        pass
-    
-    def insert_record(self, table_name: str, record: dict) -> None:
-        self.create_record(**record)
-    
-    def select_records(self, table_name: str, **filters) -> list:
-        return self.select_record(**filters)
-    
-    def update_record_db(self, table_name: str, **updates) -> bool:
-        try:
-            student_id = updates.get("student_id")
-            if student_id is None:
-                return False
-            updates_without_id = {k: v for k, v in updates.items() if k != "student_id"}
-            self.update_record(student_id=student_id, **updates_without_id)
-            return True
-        except Exception:
-            return False
-    
-    def delete_record_db(self, table_name: str, student_id: int) -> bool:
-        try:
-            self.delete_record(student_id)
-            return True
-        except Exception:
-            return False

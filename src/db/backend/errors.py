@@ -1,14 +1,3 @@
-class InvalidAgeError(Exception):
-    pass
-
-class DuplicateIDError(Exception):
-    pass
-
-class MissingColumnError(Exception):
-    pass
-
-class UnknownColumnError(Exception):
-    pass
 # src/db/backend/errors.py
 
 class InvalidAgeError(Exception):

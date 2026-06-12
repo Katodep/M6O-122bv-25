@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any
 
 from .database import Database
-from .errors import TableNotFoundError
+from .errors import TableNotFoundError, InvalidStorageDataError
 from .table import Table
 
 
@@ -28,8 +28,14 @@ class JSONDatabase(Database):
         if not table_path.exists():
             raise TableNotFoundError(f"Таблица '{table_name}' не существует.")
         
-        with table_path.open("r", encoding="utf-8") as f:
-            data = json.load(f)
+        try:
+            with table_path.open("r", encoding="utf-8") as f:
+                data = json.load(f)
+        except json.JSONDecodeError:
+            raise InvalidStorageDataError("Файл таблицы содержит некорректный JSON.")
+        
+        if "columns" not in data or "records" not in data:
+            raise InvalidStorageDataError("Файл таблицы имеет некорректную структуру.")
         
         return Table(tuple(data["columns"]), data.get("records", []))
     
@@ -59,4 +65,11 @@ class JSONDatabase(Database):
         result = table.delete_record(student_id)
         if result:
             self._save_table(table_name, table)
+        return result
+    
+    def create_record(self, **kwargs) -> dict[str, Any]:
+        table_name = kwargs.pop("table_name", "students")
+        table = self._load_table(table_name)
+        result = table.create_record(**kwargs)
+        self._save_table(table_name, table)
         return result

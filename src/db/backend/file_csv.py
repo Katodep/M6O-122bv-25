@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any
 
 from .database import Database
-from .errors import TableNotFoundError
+from .errors import TableNotFoundError, InvalidStorageDataError
 from .table import Table
 
 
@@ -28,21 +28,24 @@ class CSVDatabase(Database):
         if not table_path.exists():
             raise TableNotFoundError(f"Таблица '{table_name}' не существует.")
         
-        records = []
-        with table_path.open("r", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            columns = tuple(reader.fieldnames) if reader.fieldnames else ()
-            for row in reader:
-                converted_row = {}
-                for key, value in row.items():
-                    if key == "student_id" or key == "age":
-                        try:
-                            converted_row[key] = int(value)
-                        except ValueError:
+        try:
+            records = []
+            with table_path.open("r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                columns = tuple(reader.fieldnames) if reader.fieldnames else ()
+                for row in reader:
+                    converted_row = {}
+                    for key, value in row.items():
+                        if key == "student_id" or key == "age":
+                            try:
+                                converted_row[key] = int(value)
+                            except ValueError:
+                                converted_row[key] = value
+                        else:
                             converted_row[key] = value
-                    else:
-                        converted_row[key] = value
-                records.append(converted_row)
+                    records.append(converted_row)
+        except Exception as e:
+            raise InvalidStorageDataError("Файл таблицы содержит некорректные данные.") from e
         
         return Table(columns, records)
     
@@ -77,4 +80,11 @@ class CSVDatabase(Database):
         result = table.delete_record(student_id)
         if result:
             self._save_table(table_name, table)
+        return result
+    
+    def create_record(self, **kwargs) -> dict[str, Any]:
+        table_name = kwargs.pop("table_name", "students")
+        table = self._load_table(table_name)
+        result = table.create_record(**kwargs)
+        self._save_table(table_name, table)
         return result

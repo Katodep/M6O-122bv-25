@@ -1,12 +1,10 @@
 {
-  "columns": ["student_id", "first_name", "second_name", "age", "sex"],
-  "records": [
-    {
-      "student_id": 1,
-      "first_name": "Иван",
-      "second_name": "Иванов",
-      "age": 20,
-      "sex": "М"
-    }
-  ]
+  "columns": [
+    "student_id",
+    "first_name",
+    "second_name",
+    "age",
+    "sex"
+  ],
+  "records": []
 }

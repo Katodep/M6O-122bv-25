@@ -79,14 +79,17 @@ class StudentTUI:
         sex = input("sex: ").strip()
         
         try:
-            record = self.database.create_record(
-                student_id=student_id,
-                first_name=first_name,
-                second_name=second_name,
-                age=age,
-                sex=sex
-            )
-            print(f"Запись добавлена: {record}")
+            record = {
+                "student_id": student_id,
+                "first_name": first_name,
+                "second_name": second_name,
+                "age": age,
+                "sex": sex
+            }
+            if student_id is None:
+                record.pop("student_id")
+            self.database.insert_record("students", record)
+            print(f"Запись добавлена")
         except Exception as exc:
             print(f"Ошибка: {exc}")
     
