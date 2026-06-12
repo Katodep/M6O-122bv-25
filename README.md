@@ -47,4 +47,4 @@
 ### Запуск тестов
 pytest tests/ --cov=src.db.backend --cov-report=term-missing
 
-![](2f4b15277f4026d828b762ad39b8c12f.jpeg)
+![](2f4b15277f4026d828b762ad39b8c12f.png)
