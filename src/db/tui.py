@@ -1,28 +1,25 @@
 from .backend.memory import StudentTable
-from .backend.file_csv import CSVDatabase
 from .backend.file_json import JSONDatabase
+from .backend.file_csv import CSVDatabase
 
 
 class StudentTUI:
     def __init__(self):
-        print("Выберите тип базы данных:")
+        print("\nВыберите тип базы данных:")
         print("1. In-memory")
-        print("2. JSON файлы")
-        print("3. CSV файлы")
+        print("2. JSON")
+        print("3. CSV")
+        
         choice = input("Выберите (1-3): ").strip()
         
         if choice == "1":
             self.database = StudentTable()
-            print("Используется in-memory база данных")
         elif choice == "2":
             self.database = JSONDatabase()
-            print("Используется JSON база данных")
         elif choice == "3":
             self.database = CSVDatabase()
-            print("Используется CSV база данных")
         else:
             self.database = StudentTable()
-            print("Используется in-memory база данных")
         
         self.running = True
         self._ensure_table_exists()
@@ -30,7 +27,7 @@ class StudentTUI:
     def _ensure_table_exists(self):
         try:
             self.database.select_records("students")
-        except:
+        except Exception:
             self.database.create_table("students", ("student_id", "first_name", "second_name", "age", "sex"))
     
     def print_menu(self):
@@ -70,8 +67,6 @@ class StudentTUI:
     def add_student(self):
         print("\nДобавление записи")
         student_id = self._read_int("id (0 - авто): ")
-        if student_id == 0:
-            student_id = None
         
         first_name = input("first_name: ").strip()
         second_name = input("second_name: ").strip()
@@ -80,16 +75,16 @@ class StudentTUI:
         
         try:
             record = {
-                "student_id": student_id,
                 "first_name": first_name,
                 "second_name": second_name,
                 "age": age,
                 "sex": sex
             }
-            if student_id is None:
-                record.pop("student_id")
+            if student_id != 0:
+                record["student_id"] = student_id
+            
             self.database.insert_record("students", record)
-            print(f"Запись добавлена")
+            print("Запись добавлена")
         except Exception as exc:
             print(f"Ошибка: {exc}")
     
@@ -139,19 +134,19 @@ class StudentTUI:
         
         updates = {}
         
-        first_name = input(f"Новое имя ({current['first_name']}): ").strip()
+        first_name = input(f"Новое имя ({current.get('first_name', '')}): ").strip()
         if first_name:
             updates['first_name'] = first_name
         
-        second_name = input(f"Новая фамилия ({current['second_name']}): ").strip()
+        second_name = input(f"Новая фамилия ({current.get('second_name', '')}): ").strip()
         if second_name:
             updates['second_name'] = second_name
         
-        age_input = input(f"Новый возраст ({current['age']}): ").strip()
+        age_input = input(f"Новый возраст ({current.get('age', '')}): ").strip()
         if age_input:
             updates['age'] = int(age_input)
         
-        sex = input(f"Новый пол ({current['sex']}): ").strip()
+        sex = input(f"Новый пол ({current.get('sex', '')}): ").strip()
         if sex:
             updates['sex'] = sex
         
