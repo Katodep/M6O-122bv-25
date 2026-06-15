@@ -46,7 +46,7 @@ class CSVDatabase(Database):
                         else:
                             converted_row[key] = value
                     records.append(converted_row)
-        except Exception as e:
+        except (csv.Error, OSError, UnicodeDecodeError) as e:
             raise InvalidStorageDataError("Файл таблицы содержит некорректные данные.") from e
         return Table(columns, records)
 

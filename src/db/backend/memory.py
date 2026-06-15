@@ -1,18 +1,25 @@
 from typing import Any
-from .errors import InvalidAgeError, DuplicateIDError
+from .database import Database
+from .errors import InvalidAgeError, DuplicateIDError, UnknownColumnError
 
 
-class StudentTable:
+class StudentTable(Database):
     def __init__(self) -> None:
         self._student: list[dict[str, Any]] = []
+        self.columns = ("student_id", "first_name", "second_name", "age", "sex")
     
     def _get_next_id(self) -> int:
         if not self._student:
             return 1
         return max(record.get("student_id", 0) for record in self._student) + 1
     
+    def _validate_columns(self, record: dict[str, Any]) -> None:
+        for key in record:
+            if key not in self.columns:
+                raise UnknownColumnError(f"Поле '{key}' не определено в структуре таблицы.")
+    
     def create_table(self, table_name: str, columns: tuple[str, ...]) -> None:
-        pass
+        self.columns = columns
     
     def create_record(
         self,
@@ -39,29 +46,11 @@ class StudentTable:
             "age": age,
             "sex": sex.strip()
         }
+        self._validate_columns(new_record)
         self._student.append(new_record)
         return new_record.copy()
     
-    def select_record(
-        self,
-        student_id: int | None = None,
-        first_name: str | None = None,
-        second_name: str | None = None,
-        age: int | None = None,
-        sex: str | None = None,
-        **filters
-    ) -> list[dict[str, Any]]:
-        if student_id is not None:
-            filters["student_id"] = student_id
-        if first_name is not None:
-            filters["first_name"] = first_name
-        if second_name is not None:
-            filters["second_name"] = second_name
-        if age is not None:
-            filters["age"] = age
-        if sex is not None:
-            filters["sex"] = sex
-        
+    def select_records(self, table_name: str, **filters: Any) -> list[dict[str, Any]]:
         if not filters:
             return [r.copy() for r in self._student]
         
@@ -76,8 +65,8 @@ class StudentTable:
                 result.append(record.copy())
         return result
     
-    def select_records(self, table_name: str, **filters: Any) -> list[dict[str, Any]]:
-        return self.select_record(**filters)
+    def select_record(self, **filters: Any) -> list[dict[str, Any]]:
+        return self.select_records("students", **filters)
     
     def insert_record(self, table_name: str, record: dict[str, Any]) -> None:
         self.create_record(**record)
@@ -92,6 +81,8 @@ class StudentTable:
                 if record.get("student_id") == student_id:
                     for key, value in updates.items():
                         if key != "student_id":
+                            if key not in self.columns:
+                                raise UnknownColumnError(f"Поле '{key}' не определено в структуре таблицы.")
                             if key == "age" and value < 0:
                                 return False
                             self._student[i][key] = value
@@ -113,7 +104,18 @@ class StudentTable:
     def sort_records(self, field: str, reverse: bool = False) -> list[dict[str, Any]]:
         if not self._student:
             return []
+        if field not in self.columns:
+            raise UnknownColumnError(f"Поле '{field}' не определено в структуре таблицы.")
         return sorted(self._student, key=lambda x: x.get(field), reverse=reverse)
     
     def get_all(self) -> list[dict[str, Any]]:
         return [r.copy() for r in self._student]
+    
+    def _table_exists(self, table_name: str) -> bool:
+        return True
+    
+    def _load_table(self, table_name: str):
+        return self
+    
+    def _save_table(self, table_name: str, table) -> None:
+        pass

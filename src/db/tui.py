@@ -144,7 +144,11 @@ class StudentTUI:
         
         age_input = input(f"Новый возраст ({current.get('age', '')}): ").strip()
         if age_input:
-            updates['age'] = int(age_input)
+            try:
+                updates['age'] = int(age_input)
+            except ValueError:
+                print("Ошибка: введите целое число.")
+                return
         
         sex = input(f"Новый пол ({current.get('sex', '')}): ").strip()
         if sex:

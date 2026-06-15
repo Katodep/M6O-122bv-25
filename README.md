@@ -41,10 +41,10 @@
 - `InvalidStorageDataError` - повреждение файла
 
 ## Тестирование
-- Покрытие кода backend: **90%**
+- Покрытие кода backend: **89%**
 - Фреймворк: unittest + pytest
 
 ### Запуск тестов
 pytest tests/ --cov=src.db.backend --cov-report=term-missing
 
-![](1111.png)
+![](f1621fc4-77b1-4752-80ec-6d5063e92d6a.png)

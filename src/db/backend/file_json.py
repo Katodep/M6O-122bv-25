@@ -22,7 +22,6 @@ class JSONDatabase(Database):
         table_path = self._get_table_path(table_name)
         if table_path.exists():
             return
-        table = Table(columns)
         with table_path.open("w", encoding="utf-8") as f:
             json.dump({"columns": list(columns), "records": []}, f, ensure_ascii=False, indent=2)
 
