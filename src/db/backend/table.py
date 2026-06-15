@@ -1,0 +1,73 @@
+from typing import Any
+
+from .errors import MissingColumnError, UnknownColumnError
+
+
+class Table:
+    def __init__(self, columns: tuple[str, ...], records: list[dict[str, Any]] | None = None) -> None:
+        self.columns = columns
+        self.records: list[dict[str, Any]] = []
+
+        if records is not None:
+            for record in records:
+                self.insert_record(record)
+
+    def insert_record(self, record: dict[str, Any]) -> None:
+        missing_columns = [column for column in self.columns if column not in record]
+        if missing_columns:
+            raise MissingColumnError(f"Отсутствует поле '{missing_columns[0]}' в записи.")
+
+        extra_columns = [column for column in record if column not in self.columns]
+        if extra_columns:
+            raise UnknownColumnError(f"Поле '{extra_columns[0]}' не определено в структуре таблицы.")
+
+        self.records.append(record.copy())
+
+    def select_records(self, **filters: Any) -> list[dict[str, Any]]:
+        unknown_filters = [key for key in filters if key not in self.columns]
+        if unknown_filters:
+            raise UnknownColumnError(f"Поле '{unknown_filters[0]}' не определено в структуре таблицы.")
+
+        if not filters:
+            return [record.copy() for record in self.records]
+
+        result: list[dict[str, Any]] = []
+        for record in self.records:
+            if all(record.get(key) == value for key, value in filters.items()):
+                result.append(record.copy())
+        return result
+
+    def update_record(self, **updates: Any) -> bool:
+        if "student_id" not in updates:
+            return False
+
+        student_id = updates["student_id"]
+        for i, record in enumerate(self.records):
+            if record.get("student_id") == student_id:
+                for key in updates:
+                    if key not in self.columns and key != "student_id":
+                        raise UnknownColumnError(f"Поле '{key}' не определено в структуре таблицы.")
+                for key, value in updates.items():
+                    if key != "student_id":
+                        self.records[i][key] = value
+                return True
+        return False
+
+    def delete_record(self, student_id: int) -> bool:
+        for i, record in enumerate(self.records):
+            if record.get("student_id") == student_id:
+                self.records.pop(i)
+                return True
+        return False
+
+    def sort_records(self, field: str, reverse: bool = False) -> list[dict[str, Any]]:
+        if field not in self.columns:
+            raise UnknownColumnError(f"Поле '{field}' не определено в структуре таблицы.")
+        
+        if not self.records:
+            return []
+        
+        return sorted(self.records, key=lambda x: x.get(field), reverse=reverse)
+
+    def get_all(self) -> list[dict[str, Any]]:
+        return [record.copy() for record in self.records]
